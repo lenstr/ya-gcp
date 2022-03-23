@@ -224,7 +224,7 @@ where
     /// };
     ///
     /// let returned_metadata = client
-    ///     .insert_with_metadata(bucket, &written_metadata, data)
+    ///     .insert_with_metadata(bucket, data, &written_metadata, None)
     ///     .await?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// # };
@@ -234,8 +234,9 @@ where
     pub async fn insert_with_metadata(
         &self,
         bucket_name: impl AsRef<str>,
-        metadata: &Metadata,
         data: impl Into<Bytes>,
+        metadata: &Metadata,
+        optional: Option<objects::InsertObjectOptional<'_>>,
     ) -> Result<Metadata, ObjectError> {
         let bucket = BucketName::try_from(bucket_name.as_ref())
             .map_err(|e| InvalidNameError::Bucket(e, bucket_name.as_ref().to_owned()))?;
@@ -248,7 +249,7 @@ where
             std::io::Cursor::new(data),
             u64::try_from(data_len).expect("data length should fit in u64"),
             metadata,
-            None,
+            optional,
         )
         .map_err(ObjectError::InvalidRequest)?;
 
